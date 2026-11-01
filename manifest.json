@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Steam Profile CS Stats",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Show csst.at Leetify and FACEIT stats on Steam profiles, with a .rip shortcut.",
   "permissions": ["storage"],
   "host_permissions": ["https://csst.at/*"],

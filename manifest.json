@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Steam Profile CS Stats",
+  "version": "1.1.0",
+  "description": "Show csst.at Leetify and FACEIT stats on Steam profiles, with a .rip shortcut.",
+  "permissions": ["storage"],
+  "host_permissions": ["https://csst.at/*"],
+  "background": {"service_worker": "background.js"},
+  "action": {"default_title": "Toggle Steam profile CS stats"},
+  "content_scripts": [{"matches": ["https://steamcommunity.com/id/*", "https://steamcommunity.com/profiles/*"], "js": ["profile.js"], "run_at": "document_idle"}],
+  "web_accessible_resources": [{"resources": ["panel.html", "panel.js", "panel.css"], "matches": ["https://steamcommunity.com/*"]}],
+  "content_security_policy": {"extension_pages": "script-src 'self'; object-src 'none'; style-src 'self' 'unsafe-inline' https://csst.at; img-src 'self' data: https:; font-src 'self' https://csst.at data:; connect-src 'self' https://csst.at; base-uri 'none'"}
+}

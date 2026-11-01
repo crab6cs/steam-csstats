@@ -1,0 +1,21 @@
+/* Keep csst.at's 16px rem scale instead of shrinking its Tailwind units. */
+html,body { margin:0!important; padding:0!important; min-height:0!important; background:#191e24!important; color:#a6adbb; font-family:Arial,sans-serif; font-size:16px!important; }
+body { overflow-x:hidden; }
+#stats { padding:0; box-sizing:border-box; width:100%; }
+#stats > * { min-width:0; max-width:100%; }
+#stats > .leetify, #stats > .faceit { display:block; width:100%; }
+#stats > .leetify > div, #stats > .faceit > div { box-sizing:border-box; border:0!important; border-radius:8px; padding:16px; background:#191e24!important; }
+#stats .leetify .grid { overflow-x:auto; padding-bottom:2px; }
+#stats .faceit [role=tablist] { min-width:0; max-width:100%; }
+#stats .faceit [role=tabpanel] { overflow-x:auto; }
+#stats p { margin-top:0; }
+.panel-message { margin:16px; font-size:14px; line-height:1.6; }
+.panel-message a { color:#8dc8f4; text-decoration:underline; }
+#stats img { max-width:100%; }
+#stats button.pro-metric { cursor:default; }
+/* Keep the site's CSS radio tabs usable in this script-free fragment renderer. */
+#stats input[type=radio] { cursor:pointer; }
+@media(max-width:540px) {
+  #stats .faceit > div > .flex:last-child { flex-direction:column; }
+  #stats .faceit > div > .flex:last-child > div:first-child { flex-direction:row; }
+}

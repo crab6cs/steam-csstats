@@ -11,12 +11,13 @@
   const hideCSS = '.leetify-extension-stats-wrapper { display: none !important; }';
   function build() {
     const area = document.querySelector('.profile_customization_area');
+    const leftColumn = document.querySelector('.profile_leftcol');
     if (!enabled) { root?.remove(); root = null; hideStyle?.remove(); hideStyle = null; return; }
     if (!hideStyle?.isConnected) {
       hideStyle = document.createElement('style'); hideStyle.textContent = hideCSS;
       document.documentElement.append(hideStyle);
     }
-    if (!area || root?.isConnected) return;
+    if ((!area && !leftColumn) || root?.isConnected) return;
     root = document.createElement('section'); root.id = ROOT_ID;
     root.style.cssText = 'width:100%;box-sizing:border-box;margin:0 0 20px;display:flex;flex-direction:column;gap:12px;clear:both;';
     const button = document.createElement('a');
@@ -35,7 +36,8 @@
       frame.referrerPolicy = 'no-referrer';
       block.append(frame); root.append(block);
     }
-    area.before(root);
+    if (area) area.before(root);
+    else leftColumn.prepend(root);
   }
   function schedule() { if(!queued) {queued=true;requestAnimationFrame(()=>{queued=false;build();});} }
   window.addEventListener('message',event=>{

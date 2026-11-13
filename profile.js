@@ -7,12 +7,12 @@
   if (!/^[A-Za-z0-9_.-]+$/.test(identifier)) return;
   const ROOT_ID = 'steam-csstats-panels';
   let enabled = true, root, hideStyle, queued = false;
-  const frameOrigin = `chrome-extension://${chrome.runtime.id}`;
+  const cleanups = [];
   const hideCSS = '.leetify-extension-stats-wrapper { display: none !important; }';
   function build() {
     const area = document.querySelector('.profile_customization_area');
     const leftColumn = document.querySelector('.profile_leftcol');
-    if (!enabled) { root?.remove(); root = null; hideStyle?.remove(); hideStyle = null; return; }
+    if (!enabled) { cleanups.splice(0).forEach(cleanup=>cleanup()); root?.remove(); root = null; hideStyle?.remove(); hideStyle = null; return; }
     if (!hideStyle?.isConnected) {
       hideStyle = document.createElement('style'); hideStyle.textContent = hideCSS;
       document.documentElement.append(hideStyle);
@@ -31,7 +31,19 @@
       block.style.cssText = 'min-width:0;border-radius:8px;overflow:hidden;background:#191e24;';
       const frame = document.createElement('iframe');
       frame.title = `${kind === 'leetify' ? 'Leetify' : 'FACEIT'} statistics for ${identifier}`;
-      frame.src = `${chrome.runtime.getURL('panel.html')}#${new URLSearchParams({profile:identifier,kind})}`;
+      // CEF/Extendium may reject chrome-extension:// subframe navigations.
+      // Keep a same-origin document for parent rendering, with scripts disabled.
+      frame.setAttribute('sandbox', 'allow-same-origin allow-popups allow-popups-to-escape-sandbox');
+      frame.srcdoc = '<!doctype html><html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\' https://csst.at; img-src data: https:; font-src data: https://csst.at; base-uri \'none\'; form-action \'none\'"></head><body><main id="stats"><p class="panel-message">Loading statistics…</p></main></body></html>';
+      frame.addEventListener('load', async () => {
+        const target = frame.contentDocument?.getElementById('stats');
+        if (!target || !frame.isConnected) return;
+        const resize = () => {
+          if (frame.isConnected) frame.style.height = `${Math.max(100,Math.min(4000,Math.ceil(target.getBoundingClientRect().height + 2)))}px`;
+        };
+        const cleanup = await renderSteamCSStats(target, identifier, kind, resize);
+        if (!frame.isConnected) cleanup?.(); else if (cleanup) cleanups.push(cleanup);
+      });
       frame.style.cssText = 'display:block;width:100%;height:180px;border:0;background:#191e24;';
       frame.referrerPolicy = 'no-referrer';
       block.append(frame); root.append(block);
@@ -40,12 +52,6 @@
     else leftColumn.prepend(root);
   }
   function schedule() { if(!queued) {queued=true;requestAnimationFrame(()=>{queued=false;build();});} }
-  window.addEventListener('message',event=>{
-    if(event.origin !== frameOrigin || event.data?.type !== 'steam-csstats-height' || !Number.isFinite(event.data.height)) return;
-    for(const frame of root?.querySelectorAll('iframe') ?? []) {
-      if(event.source === frame.contentWindow) frame.style.height = `${Math.max(100,Math.min(2000,Math.ceil(event.data.height)))}px`;
-    }
-  });
   chrome.storage.local.get({enabled:true},settings=>{enabled=settings.enabled!==false;schedule();});
   chrome.storage.onChanged.addListener((changes,area)=>{if(area==='local' && changes.enabled){enabled=changes.enabled.newValue!==false;schedule();}});
   new MutationObserver(schedule).observe(document.documentElement,{childList:true,subtree:true});

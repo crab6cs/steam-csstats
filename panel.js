@@ -1,8 +1,6 @@
-(() => {
+globalThis.renderSteamCSStats = async (target, profile, kind, resize) => {
   'use strict';
-  const params = new URLSearchParams(location.hash.slice(1));
-  const profile = params.get('profile'), kind = params.get('kind');
-  const target = document.getElementById('stats');
+  const document = target.ownerDocument;
   if (!/^[A-Za-z0-9_.-]+$/.test(profile || '') || !['leetify','faceit'].includes(kind)) {
     target.textContent = 'Invalid profile.'; return;
   }
@@ -29,10 +27,6 @@
       if (element.localName==='a') {element.target='_blank';element.rel='noopener noreferrer';}
     }
     return doc.body;
-  }
-  function resize() {
-    const height = Math.ceil(target.getBoundingClientRect().height + 2);
-    parent.postMessage({type:'steam-csstats-height',height}, 'https://steamcommunity.com');
   }
   async function getFragment(fragmentPath) {
     const response = await chrome.runtime.sendMessage({type:'fragment',path:fragmentPath});
@@ -73,9 +67,9 @@
   async function start() {
     try {
       const stylePromise = chrome.runtime.sendMessage({type:'stylesheet'}).then(response=>{
-        if(response?.ok && response.url?.startsWith(`${BASE}/assets/css/`)) {
-          const link=document.createElement('link');link.rel='stylesheet';link.href=response.url;
-          link.addEventListener('load',resize);document.head.prepend(link);
+        if(response?.ok && typeof response.css === 'string') {
+          const style=document.createElement('style');style.textContent=response.css;
+          document.head.prepend(style);
         }
       }).catch(()=>{});
       const body = await getFragment(path);
@@ -92,10 +86,13 @@
       const message=document.createElement('p');message.className='panel-message';
       message.textContent=`Could not load ${kind === 'leetify' ? 'Leetify' : 'FACEIT'} stats: ${error.message}. `;
       const link=document.createElement('a');link.textContent='Open on csst.at';link.href=`${BASE}/profile/${encodeURIComponent(profile)}`;link.target='_blank';link.rel='noopener noreferrer';
-      message.append(link);target.replaceChildren(message);resize();
+      const retry=document.createElement('button');retry.textContent='Retry';retry.type='button';
+      retry.addEventListener('click',()=>{visited.clear();start();});
+      message.append(link, ' ', retry);target.replaceChildren(message);resize();
     }
   }
-  new ResizeObserver(resize).observe(target);
+  const observer = new ResizeObserver(resize);observer.observe(target);
   target.addEventListener('load',resize,true);
-  start();
-})();
+  await start();
+  return () => {observer.disconnect();target.removeEventListener('load',resize,true);};
+};

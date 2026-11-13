@@ -1,0 +1,7 @@
+{
+  "name": "steam-profile-cs-stats",
+  "version": "1.2.0",
+  "private": true,
+  "scripts": {"test": "node --test test.cjs"},
+  "devDependencies": {"playwright": "1.56.1"}
+}

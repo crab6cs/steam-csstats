@@ -10,3 +10,9 @@ Chrome extension for Steam Community profile pages.
 
 
 The identifier comes from the profile being viewed, not the signed-in user. Both `/id/<vanity>` and `/profiles/<SteamID64>` profile URLs are supported. For numeric IDs, statistics availability depends on csst.at resolving that identifier. Profile subpages (inventory, friends, etc.) are left alone. On profiles without `.profile_customization_area`, the panels are prepended to `.profile_leftcol` instead. This also supports profiles with only recent activity and comments.
+
+Version 1.2.0 fixes failed embedded pages in Steam/Extendium by rendering sanitized fragments into script-free sandboxed frames. It no longer navigates frames to extension URLs. Statistics and CSS still load through the service worker; remote JavaScript is never executed. Cloudflare verification pages are reported explicitly, with a full-profile link and Retry button.
+
+After replacing an existing Extendium installation, restart Steam and reopen a profile to load the updated content scripts and service worker.
+
+Development checks: install Node.js and Google Chrome, run `npm install`, then `npm test`. Browser tests use mocked statistics to verify rendering and sanitization independently of provider availability.
